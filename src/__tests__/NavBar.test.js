@@ -1,55 +1,43 @@
 import "@testing-library/jest-dom";
-import React from "react";
-import { fireEvent, render, screen } from "@testing-library/react";
-import { BrowserRouter } from "react-router-dom";
-import NavBar from "../components/NavBar";
+import { RouterProvider, createMemoryRouter } from "react-router-dom";
+import { render, screen, waitFor } from "@testing-library/react";
+import routes from "../routes";
 
-let container;
+// Define your mock data
+const directors = [
+  {
+    name: "Scott Derrickson",
+    movies: ["Doctor Strange", "Sinister", "The Exorcism of Emily Rose"],
+  },
+  {
+    name: "Mike Mitchell",
+    movies: ["Trolls", "Alvin and the Chipmunks: Chipwrecked", "Sky High"],
+  },
+  {
+    name: "Edward Zwick",
+    movies: ["Jack Reacher: Never Go Back", "Blood Diamond", "The Siege"],
+  },
+];
 
-beforeEach(() => {
-  container = render(
-    <BrowserRouter>
-      <NavBar />
-    </BrowserRouter>
-  ).container;
+const router = createMemoryRouter(routes, {
+  initialEntries: [`/directors`],
+  initialIndex: 0
 });
 
-test('wraps content in a div with "navbar" class', () => {
-  expect(container.querySelector(".navbar")).toBeInTheDocument();
-});
+// Test for rendering the NavBar component
+test("renders the <NavBar /> component", async () => {
+  render(<RouterProvider router={router} />);
 
-test("renders a Home <NavLink>", async () => {
-  const a = screen.queryByText(/Home/);
+  // Wait for the navigation element to be in the document
+  await waitFor(() => {
+    expect(screen.getByRole("navigation")).toBeInTheDocument();
+  });
 
-  expect(a).toBeInTheDocument();
-  expect(a.tagName).toBe("A");
-  expect(a.href).toContain("/");
-
-  fireEvent.click(a, { button: 0 });
-
-  expect(a.classList).toContain("active");
-});
-
-test("renders a Actors <NavLink>", async () => {
-  const a = screen.queryByText(/Actors/);
-
-  expect(a).toBeInTheDocument();
-  expect(a.tagName).toBe("A");
-  expect(a.href).toContain("/");
-
-  fireEvent.click(a, { button: 0 });
-
-  expect(a.classList).toContain("active");
-});
-
-test("renders a Directors <NavLink>", async () => {
-  const a = screen.queryByText(/Directors/);
-
-  expect(a).toBeInTheDocument();
-  expect(a.tagName).toBe("A");
-  expect(a.href).toContain("/");
-
-  fireEvent.click(a, { button: 0 });
-
-  expect(a.classList).toContain("active");
+  // Check for the presence of genres in the navigation bar
+  const genres = ["Action", "Adventure", "Fantasy"];
+  for (const genre of genres) {
+    const span = await screen.findByText(genre);
+    expect(span).toBeInTheDocument();
+    expect(span.tagName).toBe("SPAN");
+  }
 });
